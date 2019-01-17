@@ -162,6 +162,8 @@ training.data.shp <- training.data.habitat.shp[c("Detailed", "Broad", "Tier")]
 # Identify the segmented polygons the training points fall within and extract the zonal statistics from these
 training.data.ids <- extract(segmentation.raster, training.data.shp)
 
+
+
 training.data <- merge(data.frame(ID=1:nrow(training.data.shp), training.data.shp, seg.id=training.data.ids), zonal_stats_seg, by.x="seg.id", by.y="ID")
 
 training.data.all <- training.data[c(2:5,9:ncol(training.data))]
