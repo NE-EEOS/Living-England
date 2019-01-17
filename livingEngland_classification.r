@@ -1,7 +1,7 @@
 #############################################################################################
 ############### Automated object-based classification using RF ##############################
 #
-# 
+# WORK IN PROGRESS
 #
 
 
@@ -11,49 +11,80 @@ library(rgeos)
 library(randomForest)
 library(impute) # install zip file from: www.bioconductor.org/packages/release/bioc/html/impute.html
 
-setwd("D:/JNCC_Training_Data")
+setwd("D:/LivingEngland/DATA")
 
-source("Scripts/zonal_stats_velox.r")
-source("Scripts/user_producer_accuracy.r")
+source("C:/Users/ne.user/Documents/GitHub/Living-England/zonal_stats_velox.r")
+source("C:/Users/ne.user/Documents/GitHub/Living-England/user_producer_accuracy.r")
 
 #training data
-training.data.habitat.shp <- st_read("Training_Data/TrainingPoints_subset.shp", "TrainingPoints_subset")
+training.data.habitat.shp <- st_read("D:/JNCC_Training_Data/Training_Data/TrainingPoints_subset.shp", "TrainingPoints_subset")
 
 #segmentation shapefile
-segmentation <- st_read("Segmentation/Segmentation_subset.shp", "Segmentation_subset")
-
+segmentation <- st_read("Segmentation/LE_Segmentation_subset_GPKG.gpkg", "LE_Segmentation_subset_GPKG")
+#segmentation <- st_read("Segmentation/National_Segmentation_2017_18.gpkg","National_Segmentation_2017_18")
 
 ### Zonal statistics layers ###########################################################################
 #
 #
 
-S2_summer <- "S2/subset_Cumbria_S2_20160202_80_3_4_merge_mask.tif"
-S2_winter <- "S2/subset_Cumbria_S2_20160314_80_3_4_merge_mask.tif"
-height <- "Topography/subset_EA_IHM_2014_DTM_Resampled_10m_Subset.tif"
-slope <- "Topography/subset_EA_IHM_2014_DTM_Resampled_10m_Subset_SLOPE.tif"
-aspect <- "Topography/subset_EA_IHM_2014_DTM_Resampled_10m_Subset_ASPECT.tif"
-sar_summer <- "S1/subset_Cumbria_S1_20160108.tif"
-sar_winter <- "S1/subset_Cumbria_S1_20160706.tif"
-LSU_summer <- "LSU/subset_Cumbria_S2_20160602_80_3_4_merge_unmixed.tif"
-LSU_winter <- "LSU/subset_Cumbria_S2_20160314_80_4_3_merge_unmixed.tif"
-OS_VectorMap <- "OS/subset_Cumbria_VectorMap_District.tif"
-OS_dist_building <- "OS/subset_Prox_Cumbria_Building.tif"
-OS_dist_road <- "OS/subset_Prox_Cumbria_Roads.tif"
-OS_dist_surfacewater <- "OS/subset_Prox_Cumbria_SurfaceWater_Area.tif"
-OS_dist_woodland <- "OS/subset_Prox_Cumbria_Woodland.tif"
-bioclim_max_temp <- "Bioclim/subset_bio5_bioclim_max_temp.tif"
-bioclim_min_temp <- "Bioclim/subset_bio6_bioclim_min_temp.tif"
-bioclim_annual_rainfall <- "Bioclim/subset_bio12_bioclim_annual_rainfall.tif"
-moorlandline_dist <- "MoorlandLine/subset_MoorlandLineR_clip_prox.tif"
+#S2_summer <- "S2/summer_2017_mosaic.img"
+#S2_spring <- "S2/spring_2017_mosaic.img"
+#S2_winter <- "S2/winter_2017_2018_mosaic.img"
+#S2_autumn <- "S2/autumn_2017_mosaic.img"
+
+#S1_summer <- "S1/X"
+#S1_spring <- "S1/X"
+#S1_winter <- "S1/X"
+#S1_autumn <- "S1/X"
+
+aspect <- "AncillaryData/APGBAspect10m.tif"
+height <- "AncillaryData/APGBDTM10m.tif"
+slope <- "AncillaryData/APGBSlope10m.tif"
+
+buildingsprox <- "AncillaryData/Buildingsprox.tif"
+foreshoreprox <- "AncillaryData/Foreshoreprox.tif"
+moorlandprox <- "AncillaryData/Moorlandprox.tif"
+roadprox <- "AncillaryData/Roadprox.tif"
+surfaceWaterprox <- "AncillaryData/SurfaceWaterprox.tif"
+tidalWaterprox <- "AncillaryData/TidalWaterprox.tif"
+woodlandprox <- "AncillaryData/Woodlandprox.tif"
+
+bioclim_max_temp <- "BioClim/wc2.0_bio_30s_05.tif"
+bioclim_min_temp <- "BioClim/wc2.0_bio_30s_06.tif"
+bioclim_annual_rainfall <- "BioClim/wc2.0_bio_30s_12.tif"
+
+# list(layer_name=c(path_to_raster, stat, band1[, band2, ...]), ...) Note, use "Mode" with a capital.
 
 
-# list(layer_name=c(path_to_raster, stat, band1[, band2, ...]), ...)
+list.rasters <- list(aspect=c(aspect, "mean", 1),
+                     height=c(height, "mean", 1),
+                     slope=c(slope, "mean", 1))
 
-list.rasters <- list(height=c(height,1),
-                     aspect=c(aspect, 1),
-                     vectormap=c(OS_VectorMap, "mode", 1),
-                     S2_summer_blue_median=c(S2_summer, "median", 1),
-                     moorlandline_dist=c(moorlandline_dist,1))
+
+#list.rasters <- list(#S2_summer=c(S2_summer, "mean", 1, 2, 3, 4, 5, 6, 7, 8),
+                     #S2_spring=c(S2_spring, "mean", 1, 2, 3, 4, 5, 6, 7, 8),
+                     #S2_autumn=c(S2_autumn, "mean", 1, 2, 3, 4, 5, 6, 7, 8),
+                     #S2_winter=c(S2_winter, "mean", 1, 2, 3, 4, 5, 6, 7, 8),
+   
+                     #S1_summer=c(S1_summer, "mean", 1, 2),
+                     #S1_spring=c(S1_spring, "mean", 1, 2),
+                     #S1_autumn=c(S1_autumn, "mean", 1, 2),
+                     #S1_winter=c(S1_winter, "mean", 1, 2),
+                     
+                     #aspect=c(aspect, "mean", 1),
+                     #height=c(height, "mean", 1),
+                     #slope=c(slope, "mean", 1),
+                     
+                     #buildingsprox=c(buildingsprox, "mean", 1),
+                     #foreshoreprox=c(foreshoreprox, "mean", 1),
+                     #moorlandprox=c(moorlandprox, "mean", 1),
+                     #surfaceWaterprox=c(surfaceWaterprox, "mean", 1),
+                     #tidalWaterprox=c(tidalWaterprox, "mean", 1),
+                     #woodlandprox=c(woodlandprox, "mean", 1),
+
+                     #bioclim_max_temp=c(bioclim_max_temp, "mean", 1),
+                     #bioclim_min_temp=c(bioclim_min_temp, "mean", 1),
+                     #bioclim_annual_rainfall=c(bioclim_annual_rainfall, "mean", 1))
 
 
 ### Zonal Stats for Segmented Polygons ################################################################
@@ -62,27 +93,25 @@ list.rasters <- list(height=c(height,1),
 
 
 # Calculate the zonal stats for each segmented polygon.
-# zonal.stats.velox <- function(segmentation, list.rasters, tiles=1)
+#start <- proc.time()
+zonal_stats_seg <- zonal.stats.velox(segmentation, list.rasters, tiles=1) #60? 
+#proc.time()-start
 
-start <- proc.time()
-zonal_stats_seg <- zonal.stats.velox(segmentation, list.rasters, tiles=1)
-proc.time()-start
-
-# # Save the results as an intermediate file
+# Save the results as an intermediate file
 zonal_stats_seg <- write.table(zonal_stats_seg, "Zonal_Stats/zonal_stats_seg_test.txt", sep="\t")
 #zonal_stats_seg <- read.table("Zonal_Stats/zonal_stats_seg_test.txt", sep="\t", header=T)
 
 # Append area and perimeter from shapefile if not already calculated
-if (!"area_ratio1" %in% names(zonal_stats_seg))
-{
-  zonal_stats_seg <- merge(zonal_stats_seg, segmentation, by="ID")
-  zonal_stats_seg$area_ratio1 <- with(zonal_stats_seg, Shape_Area/Shape_Leng)
-  zonal_stats_seg$area_ratio2 <- with(zonal_stats_seg, Shape_Leng/sqrt(Shape_Area))
-}
+#if (!"area_ratio1" %in% names(zonal_stats_seg))
+#{
+#  zonal_stats_seg <- merge(zonal_stats_seg, segmentation, by="ID")
+#  zonal_stats_seg$area_ratio1 <- with(zonal_stats_seg, Shape_Area/Shape_Leng)
+#  zonal_stats_seg$area_ratio2 <- with(zonal_stats_seg, Shape_Leng/sqrt(Shape_Area))
+#}
 
 # Ensure that catagorical data doesn't having any missing or inf values
-zonal_stats_seg[is.na(zonal_stats_seg)] <- 0
-zonal_stats_seg[sapply(zonal_stats_seg, is.infinite)] <- 0
+#zonal_stats_seg[is.na(zonal_stats_seg)] <- 0
+#zonal_stats_seg[sapply(zonal_stats_seg, is.infinite)] <- 0
 
 # Impute missing values for all S1 and S2 columns, excluding max and min statistics
 impute.cols <- grepl("S2|sar",colnames(zonal_stats_seg)) & !grepl("max|min",colnames(zonal_stats_seg))
