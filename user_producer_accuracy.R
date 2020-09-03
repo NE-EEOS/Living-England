@@ -1,3 +1,12 @@
+#############################################################################################
+############### Calculate user and producer accuracies ##############################
+#
+# Author: Natural England, Evidence Earth Observation Service
+#
+# Note: work in progress
+# 
+#
+
 library(reshape2)
 library(ggplot2)
 #theme_set(theme_bw())
