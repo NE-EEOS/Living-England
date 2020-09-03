@@ -25,7 +25,7 @@ library(velox)
 library(rgdal)
 library(raster)
 
-#######################################################################################################
+#####################################################################################################
 
 zonal.stats.velox <- function(segmentation, list.rasters, tiles=1)
 {   
@@ -44,12 +44,9 @@ zonal.stats.velox <- function(segmentation, list.rasters, tiles=1)
      }
   }
   
-  # Subset the segmentation to exclude polygons with 0 area (i.e., invalid geometry)
-  segmentation <- subset(segmentation, as.numeric(st_area(segmentation)) > 0)
-  
   # Convert the segmentation polygons to points
   segmentation.points <- st_centroid(segmentation)
-
+   
    
   # Determine the extent of the segmentation layer
   seg.ext <- st_bbox(segmentation)  
@@ -88,7 +85,7 @@ return(zonal.stats.all)
 
 }
 
-###########################################################################################################
+##################################################################################################################
 #
 # Internal function to extract zonal statistics from tiled rasters
 #
@@ -102,77 +99,71 @@ zonal.stats.tiles <- function(segmentation.tiles, list.rasters)
   {
      segmentation.tile <- segmentation.tiles[[tile]]
      
-     # Check that there > 0 polygons in the tile 
-     if (nrow(segmentation.tile) > 0)
-       {
-       
-       # Get the extent of the segmentated polygons for the tile
-       box <- st_bbox(segmentation.tile)
-       ext <- extent(box[c(1,3,2,4)])
-       
-       print(paste("Zonal stats:", tile, "of", length(segmentation.tiles)))
-       
-       zonal.stats.tile <- data.frame(ID=segmentation.tile$ID)
-       if(!is.null(segmentation.tile))
-       {
-          # Iterate through each of the rasters to be processed
-          pb <- txtProgressBar(0, length(list.rasters))
-          for (i in 1:length(list.rasters)) 
-          {
-             list.raster <- list.rasters[[i]]   
-             
-             file <- list.raster[1]
-             fun <- list.raster[2]
-             bands <- list.raster[3:length(list.raster)]
-             
-             # Determine the overlap between the raster and the segmented polygons tile
-             info <- GDALinfo(file)
-             ext <- intersect(ext, extent(info[4], info[4]+info[2]*info[6], info[5], info[5]+info[1]*info[7]))  
-             if (!is.null(ext))
-             {
-                # Calculate the extent of the overlap between the raster layer and the segmented polygons
-                offset.x <- (ext[1] - info[4]) %/% info[6]
-                offset.y <- (info[5]+info[1]*info[7]-ext[4]) %/% info[7]   # Assumes ysign=-1
-                region.x <- max((ext[2]-ext[1]) %/% info[6],1)
-                region.y <- max((ext[4]-ext[3]) %/% info[7],1)
-                
-                # Create a raster stack 
-                s <- NULL
-                for (j in 1:length(bands))
-                {
-                   r <- as(readGDAL(file, band=bands[j], offset=c(offset.y, offset.x), region.dim=c(region.y, region.x)), "RasterLayer")
-                   if (is.null(s)) {s <- r} else {s <- stack(s, r)}
-                }
-                   
-                # Convert raster to a velox object
-                vx <- velox(s)       
-                
-                # Extract values for each statistic
-                zonal.stats.layer <- vx$extract(segmentation.tile, eval(parse(text=fun)))
-                
-                # Add ID column
-                zonal.stats.layer <- data.frame(zonal.stats.layer)
-                
-                # Rename columns
-                for (j in 1:length(bands))
-                {
-                   name <- paste0(names(list.rasters)[i],"_",fun)
-                   if (length(bands) > 1) name <- paste0(name, "_band", j)
-                   
-                   colnames(zonal.stats.layer)[j] <- name
-                }
-                
-                zonal.stats.tile <- cbind(zonal.stats.tile, zonal.stats.layer)   
-                
-             }
-             setTxtProgressBar(pb, i)
-          }  
-          close(pb)
+     # Get the extent of the segmentated polygons for the tile
+     box <- st_bbox(segmentation.tile)
+     ext <- extent(box[c(1,3,2,4)])
+     
+     print(paste("Zonal stats:", tile, "of", length(segmentation.tiles)))
+     
+     zonal.stats.tile <- data.frame(ID=segmentation.tile$ID)
+     if(!is.null(segmentation.tile))
+     {
+        # Iterate through each of the rasters to be processed
+        pb <- txtProgressBar(0, length(list.rasters))
+        for (i in 1:length(list.rasters)) 
+        {
+           list.raster <- list.rasters[[i]]   
            
-        # Merge results              
-          zonal.stats.all <- rbind(zonal.stats.all, zonal.stats.tile) # Append to existing zonal stats
-       }
-       
+           file <- list.raster[1]
+           fun <- list.raster[2]
+           bands <- list.raster[3:length(list.raster)]
+           
+           # Determine the overlap between the raster and the segmented polygons tile
+           info <- GDALinfo(file)
+           ext <- intersect(ext, extent(info[4], info[4]+info[2]*info[6], info[5], info[5]+info[1]*info[7]))  
+           if (!is.null(ext))
+           {
+              # Calculate the extent of the overlap between the raster layer and the segmented polygons
+              offset.x <- (ext[1] - info[4]) %/% info[6]
+              offset.y <- (info[5]+info[1]*info[7]-ext[4]) %/% info[7]   # Assumes ysign=-1
+              region.x <- max((ext[2]-ext[1]) %/% info[6],1)
+              region.y <- max((ext[4]-ext[3]) %/% info[7],1)
+              
+              # Create a raster stack 
+              s <- NULL
+              for (j in 1:length(bands))
+              {
+                 r <- as(readGDAL(file, band=bands[j], offset=c(offset.y, offset.x), region.dim=c(region.y, region.x)), "RasterLayer")
+                 if (is.null(s)) {s <- r} else {s <- stack(s, r)}
+              }
+                 
+              # Convert raster to a velox object
+              vx <- velox(s)       
+              
+              # Extract values for each statistic
+              zonal.stats.layer <- vx$extract(segmentation.tile, eval(parse(text=fun)))
+              
+              # Add ID column
+              zonal.stats.layer <- data.frame(zonal.stats.layer)
+              
+              # Rename columns
+              for (j in 1:length(bands))
+              {
+                 name <- paste0(names(list.rasters)[i],"_",fun)
+                 if (length(bands) > 1) name <- paste0(name, "_band", j)
+                 
+                 colnames(zonal.stats.layer)[j] <- name
+              }
+              
+              zonal.stats.tile <- cbind(zonal.stats.tile, zonal.stats.layer)   
+              
+           }
+           setTxtProgressBar(pb, i)
+        }  
+        close(pb)
+         
+      # Merge results              
+        zonal.stats.all <- rbind(zonal.stats.all, zonal.stats.tile) # Append to existing zonal stats
      }
   }
   
