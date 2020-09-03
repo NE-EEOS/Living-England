@@ -6,6 +6,7 @@
 # Note: work in progress
 # For 'impute', install zip file from: www.bioconductor.org/packages/release/bioc/html/impute.html
 #
+#Replaced by BGZ1-ivingEngland_classification.r
 
 library(rgdal)
 library(raster)
