@@ -1,7 +1,6 @@
 #########################################################################################################
 #
 # Function to calculate zonal stats from rasters for a set of polygons using the velox package.
-# Replaces the zonal_stats.r file
 #
 # Arguments:
 #
