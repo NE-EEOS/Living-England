@@ -2,7 +2,7 @@
 ############### Automated object-based classification using RF ##############################
 #
 # Author: Natural England, Evidence Earth Observation Service
-# 
+# Updated for phase 2
 # Note: work in progress
 # For 'impute', install zip file from: www.bioconductor.org/packages/release/bioc/html/impute.html
 #
