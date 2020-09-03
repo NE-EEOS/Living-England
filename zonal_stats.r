@@ -2,6 +2,8 @@
 #
 # Function to calculate zonal stats from rasters for a set of polygons
 #
+# Replaced by zonal_stats_velox.R
+#
 # segmentation - segmented polygons or raster layer for which zonal statistics are to be calculated
 # list.rasters - a list containing a vector of format:
 #                > list.rasters <- list(layer_name=c(path_to_raster, band, stat), ...)
