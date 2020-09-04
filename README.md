@@ -1,5 +1,5 @@
 # Living-England
-Satellite-based habitat mapping of England in R.
+# Satellite-based habitat mapping of England in R.
 
 
 The main R file that you need to run the application is livingEngland_classification.r, you will need to provide paths to your datasets within the R script. 
