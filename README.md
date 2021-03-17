@@ -3,11 +3,12 @@
 
 <span>&#9888;</span>  **IMPORTANT** <span>&#9888;</span> 
 
-This repository is currently being updated. This includes changes to the Living England scripts to replace the depreciated *velox* package with *exactextractr* package
+This is an active project. The code within this repository will potentially be updated without prior warning. Further details on the deployment of the scripts will be provided in due course.
 
-The main R file that you need to run the application is livingEngland_classification.r, you will need to provide paths to your datasets within the R script. 
-The classification algorithm is the R randomForest package - please see notes about that package online.
+The scripts are designed specifically for the Living England project, and are likely to need adjusting for application elsewhere.
 
-livingEngland_classification.r requires the user_producer_accuracy.R and zonal_stats_velox.R scripts to run correctly.
+- LivingEngland-ZonalStats-Master.r calculates the zonal statistics (mean, min, max, stdev) for numerous raster layers for each polygon in a segmentation. Script uses functions from zonal_stats_exactextract.R
+
+- LivingEngland-RandomForest-Master.r runs a Random Forest algorithm using in-situ training data and the zonal stats calculated previously. Script uses functions from user_producer_accuracy.R
 
 Please let us know if you are using the scripts - drop us a line at earth.observation@naturalengland.org.uk
